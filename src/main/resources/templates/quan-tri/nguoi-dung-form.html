@@ -1,0 +1,12 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{dung-chung :: head('Quyền và phiên người dùng')}"></head><body>
+<header th:replace="~{dung-chung :: header}"></header><div class="admin-layout shell"><aside th:replace="~{dung-chung :: adminNav}"></aside>
+<main id="noi-dung" class="admin-main"><a href="/quan-tri/nguoi-dung" class="back-arrow" aria-label="Về danh sách người dùng" title="Về danh sách người dùng"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg></a><a href="/quan-tri/nhan-vien">Quản lí nhân viên</a><h1 th:text="${nguoi.HoTen}"></h1><p th:text="${nguoi.ThuDienTu}"></p><div th:replace="~{dung-chung :: messages}"></div>
+<p th:text="${nguoi.NgayXacMinhThuDienTu!=null?'Email đã được chủ tài khoản xác minh.':'Email chưa được xác minh; chỉ quản trị mới có thể cấp quyền nhân viên. Quyền quản trị vẫn yêu cầu email đã xác minh.'}"></p>
+<form class="compact-form admin-section" th:action="@{/quan-tri/nguoi-dung/{id}(id=${nguoi.MaNguoiDung})}" method="post" th:object="${form}">
+<div class="field-error" role="alert" th:if="${#fields.hasAnyErrors()}"><p th:each="e:${#fields.allErrors()}" th:text="${e}"></p></div>
+<label for="user-role">Vai trò tài khoản</label><select id="user-role" th:field="*{vaiTro}"><option value="KhachHang">Khách hàng</option><option value="NhanVien">Nhân viên</option><option value="QuanTri">Quản trị</option></select>
+<label for="user-state">Trạng thái tài khoản</label><select id="user-state" th:field="*{trangThai}"><option value="HOAT_DONG">Hoạt động</option><option value="BI_KHOA">Bị khóa</option></select>
+<label for="user-reason">Lý do thay đổi quyền / trạng thái</label><textarea id="user-reason" th:field="*{lyDo}" rows="3" maxlength="255" required></textarea><small>Lưu trong nhật ký quản trị. Không nhập mật khẩu, khóa API hoặc mã xác thực.</small>
+<p>Không được tự khóa hoặc đổi quyền của chính mình. Khi quyền hoặc trạng thái thay đổi, người dùng cần đăng nhập lại.</p><button class="btn btn-primary">Lưu quyền và trạng thái</button></form>
+<section class="admin-section"><h2 class="h4">Phiên đăng nhập</h2><p th:text="${nguoi.phien_con}+' phiên còn hạn chưa bị thu hồi'"></p><form th:action="@{/quan-tri/nguoi-dung/{id}/thu-hoi-phien(id=${nguoi.MaNguoiDung})}" method="post"><button class="btn btn-outline-danger">Thu hồi mọi phiên của tài khoản</button></form><p>Thao tác này bao gồm phiên hiện tại nếu bạn đang xem chính tài khoản của mình.</p></section>
+</main></div><footer th:replace="~{dung-chung :: footer}"></footer></body></html>

@@ -1,0 +1,12 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{dung-chung :: head('Chiến dịch khuyến mãi')}"></head><body>
+<header th:replace="~{dung-chung :: header}"></header><div class="admin-layout shell">
+<aside th:replace="~{dung-chung :: adminNav}"></aside><main id="noi-dung" class="admin-main">
+<div class="section-top"><h1>Chiến dịch khuyến mãi.</h1><a class="btn btn-primary" href="/quan-tri/khuyen-mai/moi">Tạo chiến dịch</a></div>
+<p>Mỗi SKU áp dụng một chiến dịch: ưu tiên cao hơn trước; cùng ưu tiên chọn giá thấp hơn, rồi mã chiến dịch nhỏ hơn. Mã giảm giá được quản lý riêng.</p>
+<a href="/quan-tri/ma-giam-gia">Quản lý mã giảm giá</a><div th:replace="~{dung-chung :: messages}"></div>
+<p class="empty" th:if="${chuongTrinh.isEmpty()}">Chưa có chiến dịch. Tạo bản nháp và thêm SKU trước khi công bố.</p>
+<div class="table-responsive" th:unless="${chuongTrinh.isEmpty()}"><table class="table"><caption>30 mục mỗi trang · chiến dịch mới nhất · Thời gian Việt Nam</caption>
+<thead><tr><th>Chiến dịch</th><th>Thời gian</th><th>Ưu tiên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+<tr th:each="c:${chuongTrinh}"><td><strong th:text="${c.TenChuongTrinh}"></strong><br><small th:text="${c.KyHieu}"></small></td><td><span th:text="${c.bat_dau}"></span><br><span th:text="${c.ket_thuc}"></span></td><td th:text="${c.DoUuTien}"></td><td th:text="${c.TrangThai=='CONG_BO'?'Đã công bố':(c.TrangThai=='NHAP'?'Bản nháp':'Tạm dừng')}"></td><td><a th:href="@{/quan-tri/khuyen-mai/{id}(id=${c.MaChuongTrinh})}">Sửa &amp; quản lý SKU</a></td></tr>
+</tbody></table></div><nav th:replace="~{dung-chung :: phanTrang('/quan-tri/khuyen-mai',${trang},${chuongTrinh.size()==30},${null},${null})}"></nav></main></div><footer th:replace="~{dung-chung :: footer}"></footer></body></html>

@@ -1,0 +1,28 @@
+package vn.luma;
+import java.nio.file.*;
+import java.net.*;
+import java.net.http.*;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import vn.luma.business.SanPhamService;
+import vn.luma.web.BoLocSanPham;
+import static org.assertj.core.api.Assertions.*;
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties={"spring.datasource.url=jdbc:postgresql://127.0.0.1:55432/luma_test","app.mail.local-directory=.local/test-mail","app.scheduling.enabled=false"})
+class DanhMucMoRongIntegrationTest {
+ @Autowired vn.luma.business.QuanLySanPhamService admin;@Autowired jakarta.validation.Validator validator;@Autowired SanPhamService products;@Autowired JdbcClient jdbc;@LocalServerPort int port;
+ @Test void all75CuratedModelsArePublicWithCorrectCategoriesAndEveryColourHasOwnImage()throws Exception{DanhMucBoSungIntegrationTest.verify(products,jdbc,"tai-lieu/31_DanhMucMoRong.json",Map.of("dien-thoai",30,"laptop",30,"phu-kien",15));}
+ @Test @org.springframework.transaction.annotation.Transactional void accessorySkuCanBeEditedWithoutComputerSpecsAndPhoneStorageIsStillRequired(){var product=products.chiTiet("cong-chuyen-doi-ugreen-usb-a-to-type-c-us276-50533");var v=products.bienThe(product.duongDan()).getFirst();var price=new vn.luma.web.CapNhatBienThe(v.giaBan(),v.giaNiemYet(),v.giaVon(),v.soLuongTon(),"Kiểm thử cập nhật phụ kiện");var form=new vn.luma.web.NoiDungBienTheYeuCau(v.maHang(),null,"Phiên bản QA",v.mauSac(),"Không áp dụng","",0,0,java.math.BigDecimal.ZERO,"Không áp dụng",true,price);assertThat(validator.validate(form)).isEmpty();admin.luuSku("admin@luma.local",product.maSanPham(),v.maBienThe(),form);assertThat(products.bienThe(product.duongDan()).stream().filter(sku->sku.maBienThe()==v.maBienThe()).findFirst().orElseThrow().tenBienThe()).isEqualTo("Phiên bản QA");assertThatThrownBy(()->admin.luuSku("admin@luma.local",1L,null,form)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("điện thoại");}
+ @Test void accessoryGroupsAreDistinctAndCoverEveryAccessory()throws Exception{
+  var groups=List.of("tai-nghe","chuot-ban-phim","phu-kien");var all=new HashSet<Long>();long sum=0;
+  for(String group:groups){var form=new BoLocSanPham("",group,"",null,null,null,null,"","",false,"mac-dinh",1);var first=products.loc(form);assertThat(first.tong()).isPositive();sum+=first.tong();for(int page=1;page<=first.soTrang();page++){var f=new BoLocSanPham("",group,"",null,null,null,null,"","",false,"mac-dinh",page);for(var product:products.loc(f).noiDung())assertThat(all.add(product.maSanPham())).as("Sản phẩm không trùng nhóm").isTrue();}assertThat(products.thuongHieu(group)).isNotEmpty();}
+  long total=jdbc.sql("SELECT count(DISTINCT s.\"MaSanPham\") FROM \"SanPham\" s JOIN \"PhanLoai\" p USING (\"MaPhanLoai\") JOIN \"ThuongHieu\" h USING (\"MaThuongHieu\") JOIN \"BienTheSanPham\" b USING (\"MaSanPham\") WHERE p.\"DuongDan\"='phu-kien' AND s.\"DangHienThi\" AND p.\"DangHienThi\" AND h.\"DangHienThi\" AND b.\"DangKinhDoanh\"").query(Long.class).single();assertThat(sum).isEqualTo(total);
+  var http=HttpClient.newHttpClient();assertThat(get(http,"/san-pham?loai=tai-nghe")).contains("Tai nghe","data-catalog-filter").doesNotContain("filter-ram");assertThat(get(http,"/san-pham?loai=chuot-ban-phim")).contains("Chuột và bàn phím","data-catalog-filter").doesNotContain("filter-ram");
+ }
+ @Test void categoryPagesStayIsolatedAndBrandLineOptionsBelongToSelectedCategory(){for(String category:List.of("dien-thoai","laptop","phu-kien")){var form=new BoLocSanPham("",category,"",null,null,null,null,"","",false,"mac-dinh",1);var first=products.loc(form);assertThat(first.tong()).isGreaterThanOrEqualTo(category.equals("phu-kien")?15:30);for(var p:first.noiDung()){String slug=jdbc.sql("SELECT p.\"DuongDan\" FROM \"SanPham\" s JOIN \"PhanLoai\" p USING(\"MaPhanLoai\") WHERE s.\"MaSanPham\"=:id").param("id",p.maSanPham()).query(String.class).single();assertThat(slug).isEqualTo(category);}assertThat(products.dongSanPham(category)).allSatisfy(row->assertThat(row.get("DuongDanThuongHieu")).isNotNull());}assertThat(products.dongSanPham("dien-thoai")).extracting(row->row.get("TenDongSanPham")).contains("Y Series","V Series","iPhone 16 Series");assertThat(products.thuongHieu("dien-thoai")).extracting(row->row.get("DuongDan")).doesNotContain("dell","hp","lenovo");assertThat(products.thuongHieu("laptop")).extracting(row->row.get("DuongDan")).doesNotContain("oppo","vivo","xiaomi");}
+ @Test void landingHasThreeCategoryEntrancesNoFiltersOrVoiceAndAccessoriesUseRelevantControls()throws Exception{var http=HttpClient.newHttpClient();String home=get(http,"/");assertThat(home).contains("ĐIỆN THOẠI","LAPTOP","PHỤ KIỆN").doesNotContain("data-catalog-filter","voice.js","data-voice-toggle","SpeechRecognition");assertThat(get(http,"/san-pham?q=iphone")).doesNotContain("data-catalog-filter");assertThat(get(http,"/san-pham?loai=dien-thoai")).contains("data-catalog-filter","filter-ram","filter-brand");assertThat(get(http,"/san-pham?loai=phu-kien")).contains("data-catalog-filter","Loại phụ kiện","Tai nghe in-ear","Chuột").doesNotContain("filter-ram","filter-cpu","filter-storage");}
+ String get(HttpClient http,String route)throws Exception{var r=http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+route)).GET().build(),HttpResponse.BodyHandlers.ofString());assertThat(r.statusCode()).as(route).isEqualTo(200);return r.body();}
+}

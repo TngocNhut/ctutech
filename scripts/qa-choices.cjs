@@ -1,0 +1,4 @@
+const path=require('node:path'),assert=require('node:assert/strict');
+const {chromium}=require(path.resolve(__dirname,'../.local/browser/node_modules/playwright'));
+const base=process.env.LUMA_BASE_URL||'http://127.0.0.1:8082';
+(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});try{const p=await browser.newPage({viewport:{width:390,height:900}});for(const sku of [1,2])await p.goto(base+'/san-pham/iphone-13?sku='+sku);await p.goto(base+'/da-xem');assert.equal(await p.locator('.product').count(),1);assert.match(await p.locator('.product-link').getAttribute('href'),/sku=2$/);await p.getByRole('button',{name:'Xóa danh sách đã xem',exact:true}).click();assert.equal(await p.locator('.product').count(),0);assert.equal((await p.goto(base+'/so-sanh')).status(),404);console.log('Recent products and removed comparison route passed.');}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

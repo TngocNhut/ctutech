@@ -1,0 +1,1 @@
+document.querySelectorAll(".cart-quantity input[name=soLuong]").forEach(input => { input.min = "1"; input.addEventListener("change", () => { if (input.reportValidity()) input.form.requestSubmit(); }); });

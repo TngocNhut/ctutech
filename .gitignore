@@ -1,0 +1,30 @@
+# Files created on this computer; do not publish credentials or database backups.
+target/
+.local/
+.env
+.env.*
+!.env.example
+config/*
+!config/application-local.example.properties
+*.log
+*.dump
+*.backup
+*.bak
+*.sql.gz
+*.p12
+*.pfx
+*.pem
+*.key
+.idea/
+.vscode/
+.DS_Store
+
+# Project notes and sample reports can contain local data; publish only deployment guides.
+/tai-lieu/*
+!/tai-lieu/34_CauHinhPayOS.md
+!/tai-lieu/35_TrienKhaiRender.md
+/*.pdf
+/*.docx
+!/tai-lieu/05_DuLieuSanPham.json
+!/tai-lieu/31_DanhMucMoRong.json
+!/tai-lieu/33_DanhMucBoSung.json

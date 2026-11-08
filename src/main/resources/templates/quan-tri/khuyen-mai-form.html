@@ -1,0 +1,30 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{dung-chung :: head('Nội dung chiến dịch')}"></head><body>
+<header th:replace="~{dung-chung :: header}"></header><div class="admin-layout shell"><aside th:replace="~{dung-chung :: adminNav}"></aside>
+<main id="noi-dung" class="admin-main"><a href="/quan-tri/khuyen-mai" class="back-arrow" aria-label="Về danh sách chiến dịch" title="Về danh sách chiến dịch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg></a>
+<h1 th:text="${maChuongTrinh==null?'Tạo chiến dịch.':'Nội dung chiến dịch.'}"></h1><div th:replace="~{dung-chung :: messages}"></div>
+<form class="compact-form admin-section" th:action="${maChuongTrinh==null?'/quan-tri/khuyen-mai/moi':'/quan-tri/khuyen-mai/'+maChuongTrinh}" method="post" th:object="${form}">
+<div class="field-error" role="alert" th:if="${#fields.hasAnyErrors()}"><p th:each="e:${#fields.allErrors()}" th:text="${e}"></p></div>
+<label for="campaign-code">Ký hiệu chiến dịch</label><input id="campaign-code" th:field="*{kyHieu}" th:readonly="${maChuongTrinh!=null}" pattern="[A-Z0-9_-]{2,50}" maxlength="50" required>
+<label for="campaign-name">Tên chiến dịch</label><input id="campaign-name" th:field="*{ten}" maxlength="160" required>
+<label for="campaign-description">Mô tả chiến dịch</label><textarea id="campaign-description" th:field="*{moTa}" rows="3" maxlength="10000"></textarea>
+<label for="campaign-start">Bắt đầu (giờ Việt Nam)</label><input id="campaign-start" type="datetime-local" th:field="*{batDau}" required>
+<label for="campaign-end">Kết thúc (giờ Việt Nam)</label><input id="campaign-end" type="datetime-local" th:field="*{ketThuc}" required>
+<label for="campaign-priority">Độ ưu tiên</label><input id="campaign-priority" type="number" th:field="*{uuTien}" min="-10000" max="10000" required>
+<label for="campaign-state">Trạng thái chiến dịch</label><select id="campaign-state" th:field="*{trangThai}"><option value="NHAP">Bản nháp</option><option value="CONG_BO">Công bố</option><option value="TAM_DUNG">Tạm dừng</option></select>
+<label class="check-label"><input type="checkbox" th:field="*{kemMa}">Cho dùng kèm mã giảm giá</label>
+<p>Phần trăm được làm tròn xuống số VND giảm trên một máy. Quy tắc đưa giá về 0 hoặc âm sẽ không áp dụng. Tạm dừng giữ lịch sử của các đơn đã chốt.</p>
+<button class="btn btn-primary">Lưu chiến dịch</button></form>
+<section class="admin-section" th:if="${maChuongTrinh!=null}"><h2 class="h4">SKU trong chiến dịch</h2>
+<p>Sửa quy tắc bằng cách nhập lại mã SKU. Bỏ chọn “Áp dụng quy tắc” để dừng SKU; dữ liệu chốt đơn được giữ nguyên.</p>
+<p><a href="/quan-tri/san-pham">Tra SKU và giá bán gốc</a> · Mã SKU số nằm ở trang sửa giá/tồn.</p>
+<div class="table-responsive" th:if="${!quyTac.isEmpty()}"><table class="table"><caption>Các quy tắc hiện có</caption><thead><tr><th>SKU</th><th>Giá bán gốc</th><th>Giảm</th><th>Áp dụng</th></tr></thead><tbody>
+<tr th:each="r:${quyTac}"><td><strong th:text="${r.MaBienThe}+' · '+${r.TenSanPham}"></strong><br><small th:text="${r.MaHang}+' · '+${r.TenBienThe}"></small></td><td th:text="${#numbers.formatDecimal(r.GiaBan,0,'POINT',0,'COMMA')}+' ₫'"></td><td th:text="${#numbers.formatDecimal(r.GiaTriGiam,0,'POINT',2,'COMMA')+(r.KieuGiam=='PHAN_TRAM'?' %':' ₫')}"></td><td th:text="${r.DangHoatDong?'Có':'Đã dừng'}"></td></tr>
+</tbody></table></div>
+<form class="compact-form" th:action="@{/quan-tri/khuyen-mai/{id}/sku(id=${maChuongTrinh})}" method="post" th:object="${rule}">
+<div class="field-error" role="alert" th:if="${#fields.hasAnyErrors()}"><p th:each="e:${#fields.allErrors()}" th:text="${e}"></p></div>
+<label for="rule-sku">Mã SKU (số)</label><input id="rule-sku" type="number" th:field="*{sku}" min="1" required>
+<label for="rule-type">Kiểu giảm SKU</label><select id="rule-type" th:field="*{kieu}"><option value="SO_TIEN">Số tiền VND / máy</option><option value="PHAN_TRAM">Phần trăm / máy</option></select>
+<label for="rule-value">Giá trị giảm SKU</label><input id="rule-value" type="number" th:field="*{giaTri}" min="0.01" step="0.01" required>
+<label class="check-label"><input type="checkbox" th:field="*{hoatDong}">Áp dụng quy tắc</label><button class="btn btn-outline-secondary">Lưu quy tắc SKU</button></form>
+</section></main></div><footer th:replace="~{dung-chung :: footer}"></footer></body></html>

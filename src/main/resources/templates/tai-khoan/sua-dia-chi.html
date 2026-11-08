@@ -1,0 +1,8 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{dung-chung :: head('Sửa địa chỉ')}"></head><body>
+<header th:replace="~{dung-chung :: header}"></header><main id="noi-dung" class="shell detail-page address-edit-page"><a href="/tai-khoan/dia-chi" class="back-arrow" aria-label="Về sổ địa chỉ" title="Về sổ địa chỉ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg></a><h1>Sửa địa chỉ.</h1>
+<div th:replace="~{dung-chung :: messages}"></div><p>Chỉ cập nhật sổ địa chỉ. Thông tin giao nhận trên các đơn đã đặt giữ theo thời điểm đặt đơn.</p>
+<form class="checkout-form" th:action="@{/tai-khoan/dia-chi/{id}/sua(id=${maDiaChi})}" method="post" th:object="${form}">
+<section th:replace="~{dia-chi-fields :: fields('')}"></section>
+<div th:if="${coDiemCu}"><label class="check-label"><input type="checkbox" name="giuDiemCu" value="true" th:checked="${giuDiemCu}">Giữ điểm bản đồ đã lưu nếu địa chỉ không đổi</label><p class="demo-note">Không gia hạn lưu điểm cũ. Nếu sửa địa chỉ, hãy chọn điểm mới hoặc bỏ chọn để dùng địa chỉ nhập tay.</p></div>
+<label class="check-label"><input type="checkbox" name="macDinh" value="true" th:checked="${macDinh}">Đặt làm địa chỉ mặc định</label>
+<button class="btn btn-primary">Lưu thay đổi địa chỉ</button></form></main><footer th:replace="~{dung-chung :: footer}"></footer><script type="module" src="/js/dia-chi.js"></script></body></html>

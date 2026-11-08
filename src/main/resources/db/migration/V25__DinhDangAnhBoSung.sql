@@ -1,0 +1,4 @@
+-- CDN đôi khi trả WebP cho URL kết thúc .jpg; dùng đúng phần mở rộng để gửi MIME chính xác.
+UPDATE "TepSanPham" SET "DuongDanTep"='/media/catalogue/071bf39d55221c59f21b.webp' WHERE "DuongDanTep"='/media/catalogue/071bf39d55221c59f21b.jpg' AND "MaSanPham" IN (SELECT "MaSanPham" FROM "SanPham" WHERE "DuongDan" IN ('iphone-18-pro'));
+UPDATE "TepSanPham" SET "DuongDanTep"='/media/catalogue/de3d68d0a0d6cecea8e9.webp' WHERE "DuongDanTep"='/media/catalogue/de3d68d0a0d6cecea8e9.jpg' AND "MaSanPham" IN (SELECT "MaSanPham" FROM "SanPham" WHERE "DuongDan" IN ('iphone-air-256gb'));
+UPDATE "TepSanPham" SET "DuongDanTep"='/media/catalogue/843582502a356c1009d4.webp' WHERE "DuongDanTep"='/media/catalogue/843582502a356c1009d4.jpg' AND "MaSanPham" IN (SELECT "MaSanPham" FROM "SanPham" WHERE "DuongDan" IN ('dien-thoai-oppo-find-x10'));

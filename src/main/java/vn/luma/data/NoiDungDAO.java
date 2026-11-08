@@ -1,0 +1,27 @@
+package vn.luma.data;
+
+import java.sql.Types;
+import java.time.ZoneId;
+import java.util.*;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+import vn.luma.business.KhongTimThayException;
+import vn.luma.web.*;
+
+@Repository
+public class NoiDungDAO {
+    private final JdbcClient jdbc;private static final ZoneId VN=ZoneId.of("Asia/Ho_Chi_Minh");
+    public NoiDungDAO(JdbcClient jdbc){this.jdbc=jdbc;}
+    private final String suKienCongKhai=" s.\"TrangThai\"='CONG_BO' AND s.\"NgayBatDau\"<=clock_timestamp() AND (s.\"NgayKetThuc\" IS NULL OR s.\"NgayKetThuc\">clock_timestamp()) ";
+    public List<Map<String,Object>> suKien(boolean admin,int page){return jdbc.sql("SELECT s.*,to_char(s.\"NgayBatDau\" AT TIME ZONE 'Asia/Ho_Chi_Minh','DD/MM/YYYY HH24:MI') AS bat_dau FROM \"SuKien\" s "+(admin?"":"WHERE "+suKienCongKhai)+" ORDER BY s.\"NgayBatDau\" DESC,s.\"MaSuKien\" DESC LIMIT 30 OFFSET :offset").param("offset",(page-1)*30).query().listOfRows();}
+    public Map<String,Object> suKien(long id,boolean lock){return jdbc.sql("SELECT * FROM \"SuKien\" WHERE \"MaSuKien\"=:id"+(lock?" FOR UPDATE":"")).param("id",id).query().listOfRows().stream().findFirst().orElseThrow(()->new KhongTimThayException("Không tìm thấy sự kiện."));}
+    public Optional<Map<String,Object>> suKien(String slug){return jdbc.sql("SELECT s.* FROM \"SuKien\" s WHERE s.\"DuongDan\"=:slug AND "+suKienCongKhai).param("slug",slug).query().listOfRows().stream().findFirst();}
+    public long luuSuKien(Long id,long actor,SuKienYeuCau f){return jdbc.sql(id==null?"INSERT INTO \"SuKien\" (\"MaChuongTrinh\",\"MaNguoiCapNhat\",\"TieuDe\",\"DuongDan\",\"NoiDung\",\"TrangThai\",\"NgayBatDau\",\"NgayKetThuc\") VALUES (:campaign,:u,:title,:slug,:body,:state,:start,:end) RETURNING \"MaSuKien\"":"UPDATE \"SuKien\" SET \"MaChuongTrinh\"=:campaign,\"MaNguoiCapNhat\"=:u,\"TieuDe\"=:title,\"DuongDan\"=:slug,\"NoiDung\"=:body,\"TrangThai\"=:state,\"NgayBatDau\"=:start,\"NgayKetThuc\"=:end WHERE \"MaSuKien\"=:id RETURNING \"MaSuKien\"").param("id",id).param("u",actor).param("campaign",f.chuongTrinh(),Types.BIGINT).param("title",f.tieuDe().strip()).param("slug",f.duongDan()).param("body",f.noiDung().strip()).param("state",f.trangThai()).param("start",f.batDau().atZone(VN).toOffsetDateTime()).param("end",f.ketThuc()==null?null:f.ketThuc().atZone(VN).toOffsetDateTime(),Types.TIMESTAMP_WITH_TIMEZONE).query(Long.class).single();}
+    public List<Map<String,Object>> viTri(){return jdbc.sql("SELECT * FROM \"ViTriHienThi\" WHERE \"KyHieu\" IN ('TRANG_CHU','UU_DAI') ORDER BY \"MaViTriHienThi\"").query().listOfRows();}
+    public Map<String,Object> banner(long id,boolean lock){return jdbc.sql("SELECT * FROM \"Banner\" WHERE \"MaBanner\"=:id"+(lock?" FOR UPDATE":"")).param("id",id).query().listOfRows().stream().findFirst().orElseThrow(()->new KhongTimThayException("Không tìm thấy banner."));}
+    public List<Map<String,Object>> banner(int page){return jdbc.sql("SELECT b.*,v.\"TenViTri\",s.\"TieuDe\" AS ten_su_kien FROM \"Banner\" b JOIN \"ViTriHienThi\" v USING (\"MaViTriHienThi\") LEFT JOIN \"SuKien\" s USING (\"MaSuKien\") ORDER BY b.\"MaBanner\" DESC LIMIT 30 OFFSET :offset").param("offset",(page-1)*30).query().listOfRows();}
+    private String bannerCongKhai(){return " b.\"DangHienThi\" AND v.\"DangHoatDong\" AND b.\"NgayBatDau\"<=clock_timestamp() AND (b.\"NgayKetThuc\" IS NULL OR b.\"NgayKetThuc\">clock_timestamp()) AND (b.\"MaSuKien\" IS NULL OR ("+suKienCongKhai+")) ";}
+    public List<Map<String,Object>> bannerCongKhai(String position){return jdbc.sql("SELECT b.*,s.\"DuongDan\" AS slug_su_kien FROM \"Banner\" b JOIN \"ViTriHienThi\" v USING (\"MaViTriHienThi\") LEFT JOIN \"SuKien\" s USING (\"MaSuKien\") WHERE v.\"KyHieu\"=:position AND "+bannerCongKhai()+" ORDER BY b.\"ThuTu\",b.\"MaBanner\" LIMIT 3").param("position",position).query().listOfRows();}
+    public boolean anhCongKhai(String file){return jdbc.sql("SELECT EXISTS(SELECT 1 FROM \"Banner\" b JOIN \"ViTriHienThi\" v USING (\"MaViTriHienThi\") LEFT JOIN \"SuKien\" s USING (\"MaSuKien\") WHERE b.\"DuongDanAnh\"=:path AND "+bannerCongKhai()+")").param("path","/anh-banner/"+file).query(Boolean.class).single();}
+    public long luuBanner(Long id,long actor,BannerYeuCau f,String image){return jdbc.sql(id==null?"INSERT INTO \"Banner\" (\"MaViTriHienThi\",\"MaSuKien\",\"MaNguoiCapNhat\",\"TieuDe\",\"VanBanThayThe\",\"DuongDanAnh\",\"DuongDanDich\",\"ThuTu\",\"DangHienThi\",\"NgayBatDau\",\"NgayKetThuc\") VALUES (:position,:event,:u,:title,:alt,:image,:target,:sort,:show,:start,:end) RETURNING \"MaBanner\"":"UPDATE \"Banner\" SET \"MaViTriHienThi\"=:position,\"MaSuKien\"=:event,\"MaNguoiCapNhat\"=:u,\"TieuDe\"=:title,\"VanBanThayThe\"=:alt,\"DuongDanAnh\"=:image,\"DuongDanDich\"=:target,\"ThuTu\"=:sort,\"DangHienThi\"=:show,\"NgayBatDau\"=:start,\"NgayKetThuc\"=:end WHERE \"MaBanner\"=:id RETURNING \"MaBanner\"").param("id",id).param("u",actor).param("position",f.viTri()).param("event",f.suKien(),Types.BIGINT).param("title",f.tieuDe().strip()).param("alt",f.moTaAnh().strip()).param("image",image).param("target",f.dich()==null||f.dich().isBlank()?null:f.dich().strip()).param("sort",f.thuTu()).param("show",f.hienThi()).param("start",f.batDau().atZone(VN).toOffsetDateTime()).param("end",f.ketThuc()==null?null:f.ketThuc().atZone(VN).toOffsetDateTime(),Types.TIMESTAMP_WITH_TIMEZONE).query(Long.class).single();}
+}
