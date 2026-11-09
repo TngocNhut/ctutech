@@ -1,1 +1,55 @@
-<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{dung-chung :: head('Cấu hình PayOS')}"></head><body><header th:replace="~{dung-chung :: header}"></header><div class="admin-layout shell"><aside th:replace="~{dung-chung :: adminNav}"></aside><main id="noi-dung" class="admin-main"><h1>Cấu hình PayOS</h1><div th:replace="~{dung-chung :: messages}"></div><section class="admin-section payos-settings"><h2>Trạng thái kết nối</h2><p th:text="${payos.dangBat?'PayOS đang bật.':'PayOS chưa bật.'}"></p><p th:if="${payos.coBanChoKhoiDongLai}" class="alert alert-info">Có cấu hình mới đang chờ. Khởi động lại website để áp dụng.</p><ul><li th:text="${payos.coClient?'Client ID: đã cấu hình':'Client ID: chưa cấu hình'}"></li><li th:text="${payos.coApi?'API key: đã cấu hình':'API key: chưa cấu hình'}"></li><li th:text="${payos.coChecksum?'Checksum key: đã cấu hình':'Checksum key: chưa cấu hình'}"></li></ul><p>Webhook nhận thanh toán: <code th:text="${payos.publicUrl+'/api/payos/webhook'}"></code></p><p>Đăng ký webhook này trong tài khoản PayOS sau khi website có địa chỉ HTTPS công khai. Kết quả trả về trình duyệt không tự xác nhận đã nhận tiền.</p></section><p th:unless="${payos.choPhepLuuTep}" class="alert alert-info">Trên Render, cập nhật PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY, PAYOS_MODE và PUBLIC_URL trong Environment của Web Service. Thay đổi biến môi trường sẽ triển khai lại ứng dụng.</p><form th:if="${payos.choPhepLuuTep}" class="compact-form admin-section payos-settings" th:action="@{/quan-tri/payos}" method="post" autocomplete="off"><h2>Thiết lập thanh toán</h2><label class="check-label"><input type="checkbox" name="bat" value="true" th:checked="${payos.batDuKien}">Cho phép khách thanh toán bằng PayOS</label><label for="payos-url">Địa chỉ gốc website</label><input id="payos-url" name="publicUrl" type="url" th:value="${payos.publicUrl}" maxlength="500" required><small>Nhập URL HTTPS công khai, ví dụ https://cuahang.example. Địa chỉ localhost không nhận được webhook từ PayOS.</small><label for="payos-client">Client ID</label><input id="payos-client" name="clientId" type="password" maxlength="512" autocomplete="new-password"><label for="payos-api">API key</label><input id="payos-api" name="apiKey" type="password" maxlength="512" autocomplete="new-password"><label for="payos-checksum">Checksum key</label><input id="payos-checksum" name="checksumKey" type="password" maxlength="512" autocomplete="new-password"><small>Thông tin được lưu trong tệp cấu hình riêng trên máy chủ, không hiển thị lại. Để trống trường khóa để giữ giá trị đã cấu hình.</small><p>Không đổi cấu hình khi còn phiên PayOS đang chờ thanh toán hoặc đối soát. Sau khi lưu cần khởi động lại website.</p><button class="btn btn-primary">Lưu cấu hình PayOS</button></form></main></div><footer th:replace="~{dung-chung :: footer}"></footer></body></html>
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{dung-chung :: head('Cấu hình PayOS')}"></head>
+<body>
+<header th:replace="~{dung-chung :: header}"></header>
+<div class="admin-layout shell">
+  <aside th:replace="~{dung-chung :: adminNav}"></aside>
+  <main id="noi-dung" class="admin-main">
+    <h1>Cấu hình PayOS</h1>
+    <div th:replace="~{dung-chung :: messages}"></div>
+
+    <section class="admin-section payos-settings" aria-labelledby="payos-status-title">
+      <h2 id="payos-status-title">Trạng thái kết nối</h2>
+      <p th:text="${payos.dangBat?'PayOS đang bật.':'PayOS chưa bật.'}"></p>
+      <p th:if="${payos.coBanChoKhoiDongLai}" class="alert alert-info">Có cấu hình mới đang chờ. Khởi động lại website để áp dụng.</p>
+      <ul>
+        <li th:text="${payos.coClient?'Client ID: đã cấu hình':'Client ID: chưa cấu hình'}"></li>
+        <li th:text="${payos.coApi?'API key: đã cấu hình':'API key: chưa cấu hình'}"></li>
+        <li th:text="${payos.coChecksum?'Checksum key: đã cấu hình':'Checksum key: chưa cấu hình'}"></li>
+      </ul>
+      <p>Webhook nhận thanh toán: <code th:text="${payos.publicUrl+'/api/payos/webhook'}"></code></p>
+      <p>PayOS xác nhận giao dịch qua webhook đã xác minh hoặc đối soát API; trang khách quay về không tự xác nhận đã nhận tiền.</p>
+    </section>
+
+    <p th:if="${payos.luuTrongDatabase and !payos.choPhepCauHinh}" class="alert alert-info">
+      Để nhập khóa PayOS tại đây, hãy thêm biến <code>PAYOS_CONFIG_ENCRYPTION_KEY</code> vào Environment của Render. Giá trị cần là khóa Base64 giải mã thành đúng 32 byte. Giữ khóa này ổn định và lưu bản sao an toàn; nếu mất khóa, cấu hình PayOS đã lưu sẽ không giải mã được.
+    </p>
+    <p th:if="${payos.choPhepCauHinh and payos.luuTrongDatabase}" class="alert alert-info">
+      Khóa PayOS được mã hóa bằng AES-256-GCM trước khi lưu vào PostgreSQL và được áp dụng ngay sau khi lưu. Khóa giải mã chỉ nằm trong Environment của Render.
+    </p>
+
+    <form th:if="${payos.choPhepCauHinh}" class="compact-form admin-section payos-settings" th:action="@{/quan-tri/payos}" method="post" autocomplete="off">
+      <h2>Thiết lập thanh toán</h2>
+      <label class="check-label"><input type="checkbox" name="bat" value="true" th:checked="${payos.batDuKien}">Cho phép khách thanh toán bằng PayOS</label>
+      <label for="payos-url">Địa chỉ gốc website</label>
+      <input id="payos-url" name="publicUrl" type="url" th:value="${payos.publicUrl}" maxlength="500" required>
+      <small>Nhập URL HTTPS công khai, không có đường dẫn cuối. Ví dụ: https://ctutech.onrender.com</small>
+
+      <label for="payos-client">Client ID</label>
+      <input id="payos-client" name="clientId" type="password" maxlength="512" autocomplete="new-password">
+      <label for="payos-api">API key</label>
+      <input id="payos-api" name="apiKey" type="password" maxlength="512" autocomplete="new-password">
+      <label for="payos-checksum">Checksum key</label>
+      <input id="payos-checksum" name="checksumKey" type="password" maxlength="512" autocomplete="new-password">
+      <small>Trường khóa để trống sẽ giữ giá trị đã lưu. Khóa không được hiển thị lại sau khi lưu.</small>
+      <p>Không đổi cấu hình khi còn phiên PayOS đang chờ thanh toán hoặc đối soát.</p>
+      <button class="btn btn-primary">Lưu cấu hình PayOS</button>
+    </form>
+
+    <p th:if="${payos.choPhepLuuTep}" class="alert alert-info">Trên máy local, cấu hình được lưu trong tệp riêng và cần khởi động lại website để áp dụng.</p>
+  </main>
+</div>
+<footer th:replace="~{dung-chung :: footer}"></footer>
+</body>
+</html>

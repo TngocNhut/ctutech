@@ -13,3 +13,5 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: PAYOS_CONFIG_ENCRYPTION_KEY
+        sync: false

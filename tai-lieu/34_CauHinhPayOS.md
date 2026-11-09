@@ -14,4 +14,8 @@ Tham khảo: https://payos.vn/docs/api/ và https://payos.vn/docs/tich-hop-webho
 
 ## Nếu chạy trên Render
 
-Render Free không lưu bền vững tệp cấu hình. Màn hình quản trị trên Render chỉ hiển thị trạng thái và hướng dẫn; hãy đặt `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`, `PAYOS_MODE` và `PUBLIC_URL` trong Environment của Web Service theo [hướng dẫn Render](35_TrienKhaiRender.md). Không nhập khóa vào GitHub hoặc chat.
+Render không lưu bền vững tệp cấu hình, vì vậy bản triển khai lưu cấu hình PayOS trong PostgreSQL bằng AES-256-GCM. Thêm `PAYOS_CONFIG_ENCRYPTION_KEY` vào Environment một lần trước khi dùng trang quản trị. Giá trị phải là Base64 của đúng 32 byte ngẫu nhiên; giữ bản sao an toàn và không thay đổi khóa sau khi đã lưu cấu hình. Nếu mất khóa, bản mã trong PostgreSQL không thể giải mã.
+
+Sau khi deploy biến này, trang **Quản trị → Cấu hình PayOS** cho phép admin nhập và bật/tắt cấu hình. Các khóa được mã hóa trước khi ghi DB, không trả lại giao diện, và cấu hình cập nhật có hiệu lực ngay. Không cần đặt các khóa PayOS vào Git, chat hay biến môi trường nếu dùng form quản trị. Có thể dùng biến `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`, `PAYOS_MODE` như nguồn cấu hình khởi tạo/fallback.
+
+Trước khi cấu hình lần đầu, cần migration `V31__CauHinhPayOSMaHoa.sql` đã chạy trên database Render. Xem [hướng dẫn triển khai Render](35_TrienKhaiRender.md).

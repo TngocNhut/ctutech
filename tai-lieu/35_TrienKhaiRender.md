@@ -73,20 +73,21 @@ PAYOS_MODE=DISABLED
 
 ## 5. Cấu hình kênh thu PayOS
 
-1. Tạo kênh thu trên PayOS, lấy **Client ID, API key, checksum key**.
-2. Chỉ sau khi website HTTPS hoạt động và bạn đã bảo vệ tài khoản quản trị, vào **Environment** của Web Service trong Render, thêm các biến:
+1. Tạo kênh thu trên PayOS và lấy **Client ID, API key, checksum key**. Không gửi các khóa này vào chat hoặc commit vào Git.
+2. Tạo khóa mã hóa 32 byte trên máy cá nhân bằng PowerShell:
 
-```text
-PUBLIC_URL=https://<ten-service>.onrender.com
-PAYOS_CLIENT_ID=<client-id>
-PAYOS_API_KEY=<api-key>
-PAYOS_CHECKSUM_KEY=<checksum-key>
-PAYOS_MODE=LIVE
+```powershell
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+$rng.Dispose()
 ```
 
-Nhập giá trị trực tiếp trong Dashboard, không commit vào Git. Render redeploy khi thay đổi biến môi trường. Trên Render, màn hình **Cấu hình PayOS** chỉ hướng dẫn và hiển thị trạng thái; lưu khóa qua form local bị tắt vì ổ đĩa Render Free không bền vững.
-3. Cấu hình webhook trên PayOS: `https://<ten-service>.onrender.com/api/payos/webhook`. Cấu hình PUBLIC_URL phải trùng domain truy cập thật. Sau khi xác minh webhook, kiểm tra với giao dịch giá trị nhỏ theo hướng dẫn PayOS. PayOS hiện không có sandbox riêng; giao dịch thử là giao dịch thật.
-4. Website chỉ xác nhận tiền sau webhook có chữ ký hợp lệ hoặc đối soát; việc quay lại website không đủ để xác nhận. Không dùng dịch vụ Free cho hoạt động bán hàng thật cần webhook tin cậy, lưu trữ an toàn hoặc uptime liên tục.
+3. Trong **Web Service → Environment** trên Render, thêm `PAYOS_CONFIG_ENCRYPTION_KEY` với chuỗi Base64 vừa tạo. Lưu một bản sao an toàn và không thay khóa sau khi lưu cấu hình; nếu mất khóa, cấu hình PayOS trong DB không giải mã được. Save và deploy để migration V31 tạo bảng lưu cấu hình mã hóa.
+4. Đăng nhập website bằng tài khoản admin, mở **Quản trị → Cấu hình PayOS**, nhập URL `https://<ten-service>.onrender.com`, Client ID, API key, checksum key, rồi bật và lưu. Khóa được mã hóa AES-256-GCM trong PostgreSQL và áp dụng ngay. Các biến `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`, `PAYOS_MODE`, `PUBLIC_URL` vẫn có thể dùng làm nguồn khởi tạo/fallback, nhưng không bắt buộc khi cấu hình qua admin.
+5. Trong PayOS, đăng ký và xác nhận webhook `https://<ten-service>.onrender.com/api/payos/webhook`. Dùng giao dịch nhỏ để kiểm tra luồng; PayOS hiện không có sandbox riêng nên đây là giao dịch thật.
+6. Website chỉ xác nhận tiền sau webhook có chữ ký hợp lệ hoặc đối soát API; trang return không xác nhận thanh toán. Không dùng dịch vụ Free cho hoạt động bán hàng thật cần uptime liên tục hoặc cam kết tiếp nhận webhook tức thời.
 
 ## 6. Những giới hạn còn lại
 
