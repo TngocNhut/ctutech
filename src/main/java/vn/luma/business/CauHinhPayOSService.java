@@ -12,6 +12,7 @@ import java.util.*;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class CauHinhPayOSService {
     private static final SecureRandom RANDOM=new SecureRandom();
     private final TaiKhoanService users;private final ThanhToanCauHinh current;private final QuanLySanPhamDAO audit;private final JdbcClient jdbc;private final Path file;private final String encryptionKey;private volatile boolean pending;
     @Value("${app.payos.file-config-enabled:true}") boolean fileConfigEnabled;
+    @Autowired
     public CauHinhPayOSService(TaiKhoanService users,ThanhToanCauHinh current,QuanLySanPhamDAO audit,JdbcClient jdbc,
             @Value("${app.payos.config-file:config/payos-local.properties}") String path,
             @Value("${app.payos.config-encryption-key:}") String encryptionKey){this.users=users;this.current=current;this.audit=audit;this.jdbc=jdbc;this.file=Path.of(path).toAbsolutePath().normalize();this.encryptionKey=encryptionKey;}
