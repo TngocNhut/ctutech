@@ -42,12 +42,17 @@ public class PayOSClient {
     }
     public BaoThu xacMinh(String body){
         sanSang();
+        com.fasterxml.jackson.databind.JsonNode envelope;
+        try{envelope=new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);}
+        catch(Exception ex){org.slf4j.LoggerFactory.getLogger(getClass()).warn("PayOS webhook rejected: invalid JSON");throw new IllegalArgumentException("Webhook PayOS không hợp lệ.");}
+        vn.payos.model.webhooks.WebhookData data;
         try{
-            var envelope=new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
-            var data=sdk().webhooks().verify(body);
-            if(!envelope.path("success").asBoolean()||!"00".equals(envelope.path("code").asText())||!"00".equals(data.getCode()))throw new IllegalArgumentException("Sự kiện chưa xác nhận chuyển khoản thành công.");
+            data=sdk().webhooks().verify(body);
+        }catch(Exception ex){org.slf4j.LoggerFactory.getLogger(getClass()).warn("PayOS webhook rejected: SDK verification or payload format");throw new IllegalArgumentException("Webhook PayOS không hợp lệ.");}
+        try{
+            if(!envelope.path("success").asBoolean()||!"00".equals(envelope.path("code").asText())||!"00".equals(data.getCode())){org.slf4j.LoggerFactory.getLogger(getClass()).warn("PayOS webhook rejected: unsuccessful event");throw new IllegalArgumentException("Sự kiện chưa xác nhận chuyển khoản thành công.");}
             return new BaoThu(data.getOrderCode(),data.getPaymentLinkId(),data.getReference(),BigDecimal.valueOf(data.getAmount()),data.getCurrency(),thoiDiem(data.getTransactionDateTime()));
-        }catch(Exception ex){throw new IllegalArgumentException("Webhook PayOS không hợp lệ.");}
+        }catch(Exception ex){org.slf4j.LoggerFactory.getLogger(getClass()).warn("PayOS webhook rejected: invalid payment fields");throw new IllegalArgumentException("Webhook PayOS không hợp lệ.");}
     }
     public DoiSoat tra(long code){sanSang();return chuyen(sdk().paymentRequests().get(code));}
     public DoiSoat huy(long code){sanSang();return chuyen(sdk().paymentRequests().cancel(code,"Khách hủy hoặc đơn hết hạn"));}
