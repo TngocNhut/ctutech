@@ -23,10 +23,12 @@ public class ThanhToanController {
     @PostMapping("/thanh-toan/{code}/mo-phong") public String moPhong(@PathVariable String code,@RequestParam BigDecimal soTien,@RequestParam String nonce,Principal user,RedirectAttributes flash){try{service.moPhong(user.getName(),code,soTien,nonce);flash.addFlashAttribute("thongBao","Đã ghi nhận khoản thu mô phỏng. Không có chuyển tiền thật.");}catch(IllegalArgumentException ex){flash.addFlashAttribute("loi",ex.getMessage());}return "redirect:/thanh-toan/"+code;}
     @PostMapping(value="/api/payos/webhook",produces=MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody public ResponseEntity<String> webhook(HttpServletRequest request)throws java.io.IOException{
+        var log=org.slf4j.LoggerFactory.getLogger(ThanhToanController.class);
+        log.info("PayOS webhook: request received");
         byte[] data=request.getInputStream().readNBytes(65537);
-        if(data.length>65536)return ResponseEntity.status(413).body("{\"ok\":false}");
+        if(data.length>65536){log.warn("PayOS webhook: payload too large");return ResponseEntity.status(413).body("{\"ok\":false}");}
         try{service.webhook(new String(data,StandardCharsets.UTF_8));return ResponseEntity.ok("{\"ok\":true}");}
-        catch(IllegalStateException ex){return ResponseEntity.status(503).body("{\"ok\":false}");}
-        catch(IllegalArgumentException ex){return ResponseEntity.badRequest().body("{\"ok\":false}");}
+        catch(IllegalStateException ex){log.warn("PayOS webhook: unavailable");return ResponseEntity.status(503).body("{\"ok\":false}");}
+        catch(IllegalArgumentException ex){log.warn("PayOS webhook: rejected by handler");return ResponseEntity.badRequest().body("{\"ok\":false}");}
     }
 }
