@@ -9,11 +9,7 @@ import java.util.Optional;
 
 @Repository
 public class SanPhamDAO {
-    private static final String CATEGORY="""
-        CASE WHEN p."DuongDan"='phu-kien' AND (lower(s."TenTimKiem") LIKE '%tai nghe%' OR EXISTS (SELECT 1 FROM "GiaTriThuocTinhBienThe" av JOIN "ThuocTinhDanhMuc" at ON at."MaThuocTinh"=av."MaThuocTinh" WHERE av."MaSanPham"=s."MaSanPham" AND at."KyHieu"='LOAI_PHU_KIEN' AND av."GiaTriChu" ILIKE 'Tai nghe%')) THEN 'tai-nghe'
-             WHEN p."DuongDan"='phu-kien' AND (lower(s."TenTimKiem") LIKE '%chuot%' OR lower(s."TenTimKiem") LIKE '%ban phim%' OR EXISTS (SELECT 1 FROM "GiaTriThuocTinhBienThe" av JOIN "ThuocTinhDanhMuc" at ON at."MaThuocTinh"=av."MaThuocTinh" WHERE av."MaSanPham"=s."MaSanPham" AND at."KyHieu"='LOAI_PHU_KIEN' AND av."GiaTriChu" IN ('Chuột','Bàn phím'))) THEN 'chuot-ban-phim'
-             ELSE p."DuongDan" END
-        """;
+    private static final String CATEGORY="p.\"DuongDan\"";
     private static final String LOC="""
         FROM "SanPham" s JOIN "ThuongHieu" h USING ("MaThuongHieu") JOIN "PhanLoai" p USING ("MaPhanLoai")
         JOIN "BienTheSanPham" b USING ("MaSanPham") JOIN "GiaKhuyenMaiBienThe" g ON g."MaBienThe"=b."MaBienThe" JOIN "KhoHang" k ON k."MaKhoHang"=1 AND k."DangHoatDong"
