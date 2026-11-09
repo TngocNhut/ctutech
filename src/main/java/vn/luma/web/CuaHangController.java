@@ -36,7 +36,7 @@ public class CuaHangController {
         var selected=variants.stream().filter(v->sku==null||v.maBienThe()==sku).findFirst()
             .orElseThrow(()->new vn.luma.business.KhongTimThayException("Cấu hình không khả dụng."));
         model.addAttribute("sp",sanPham.chiTiet(slug));model.addAttribute("bienThe",variants);model.addAttribute("sku",selected);model.addAttribute("anh",sanPham.anh(slug,selected.maBienThe()));model.addAttribute("noiDung",sanPham.noiDung(slug));
-        model.addAttribute("moHinh",sanPham.moHinh(slug,selected.maBienThe()).orElse(null));model.addAttribute("thongSoMoRong",configuration.congKhai(slug,selected.maBienThe()));model.addAttribute("daDangNhap",user!=null);model.addAttribute("theoDoi",user==null?null:theoDoi.cuaToi(user.getName(),sanPham.chiTiet(slug).maSanPham()).orElse(null));model.addAttribute("tongHopDanhGia",danhGia.congKhai(slug,1).tongHop());
+        model.addAttribute("moHinh",sanPham.moHinh(slug,selected.maBienThe()).orElse(null));model.addAttribute("thongSoMoRong",configuration.congKhai(slug,selected.maBienThe()));model.addAttribute("daDangNhap",user!=null);model.addAttribute("theoDoi",user==null?null:theoDoi.cuaToi(user.getName(),sanPham.chiTiet(slug).maSanPham()).orElse(null));var reviews=danhGia.congKhai(slug,1);model.addAttribute("tongHopDanhGia",reviews.tongHop());model.addAttribute("danhGiaCongKhai",reviews.danhGia());model.addAttribute("sanPhamTuongTu",trangChuDAO.tuongTu(reviews.sanPham().maSanPham()));model.addAttribute("coTheDanhGia",user!=null&&danhGia.coTheDanhGia(user.getName(),reviews.sanPham().maSanPham()));
         choices.daXem(session,selected.maBienThe());return "san-pham/chi-tiet";
     }
 }
