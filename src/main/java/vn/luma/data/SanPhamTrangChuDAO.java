@@ -10,7 +10,7 @@ public class SanPhamTrangChuDAO {
     private final JdbcClient jdbc;
     public SanPhamTrangChuDAO(JdbcClient jdbc){this.jdbc=jdbc;}
     public List<Map<String,Object>> lay(boolean banChay){
-        String order=banChay?"sold DESC, s.\"MaSanPham\" DESC":"s.\"NgayTao\" DESC, s.\"MaSanPham\" DESC";
+        String order=banChay?"sold DESC, s.\"MaSanPham\" DESC":"CASE WHEN p.\"DuongDan\" IN ('dien-thoai','laptop') THEN 0 ELSE 1 END, s.\"NgayTao\" DESC, s.\"MaSanPham\" DESC";
         return jdbc.sql("""
             SELECT s."TenSanPham" AS ten, s."DuongDan" AS slug, h."TenThuongHieu" AS hang,
                    min(g."GiaHieuLuc") AS gia,
@@ -19,7 +19,7 @@ public class SanPhamTrangChuDAO {
             FROM "SanPham" s JOIN "PhanLoai" p USING ("MaPhanLoai") JOIN "ThuongHieu" h USING ("MaThuongHieu")
             JOIN "BienTheSanPham" b USING ("MaSanPham") JOIN "GiaKhuyenMaiBienThe" g USING ("MaBienThe")
             WHERE s."DangHienThi" AND p."DangHienThi" AND h."DangHienThi" AND b."DangKinhDoanh"
-            GROUP BY s."MaSanPham",h."TenThuongHieu"
-            """+(banChay?" HAVING coalesce((SELECT sum(c.\"SoLuong\") FROM \"ChiTietDonHang\" c JOIN \"DonHang\" d USING (\"MaDonHang\") JOIN \"BienTheSanPham\" sold_sku ON sold_sku.\"MaBienThe\"=c.\"MaBienThe\" WHERE sold_sku.\"MaSanPham\"=s.\"MaSanPham\" AND d.\"TrangThaiDon\"='HOAN_THANH'),0)>0":"")+" ORDER BY "+order+" LIMIT 8").query().listOfRows();
+            GROUP BY s."MaSanPham",h."TenThuongHieu",p."DuongDan"
+            """+" ORDER BY "+order+" LIMIT 8").query().listOfRows();
     }
 }
