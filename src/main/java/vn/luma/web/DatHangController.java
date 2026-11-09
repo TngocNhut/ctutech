@@ -22,6 +22,7 @@ public class DatHangController {
         var account=users.hienTai(user.getName());var saved=addresses.danhSach(user.getName());var address=saved.isEmpty()?DiaChiYeuCau.trong(account.hoTen(),account.soDienThoai()):new DiaChiYeuCau((String)saved.getFirst().get("TenNguoiNhan"),(String)saved.getFirst().get("SoDienThoaiNhan"),(String)saved.getFirst().get("TinhThanh"),(String)saved.getFirst().get("PhuongXa"),(String)saved.getFirst().get("DiaChiCuThe"),(String)saved.getFirst().get("GhiChuGiaoHang"),"",null,null,false);model.addAttribute("form",new DatHangYeuCau(UUID.randomUUID().toString(),orders.noiDungGio(user.getName()),"",address));duLieu(user,model);return "dat-hang";
     }
     @PostMapping("/dat-hang") public String dat(@Valid @ModelAttribute("form") DatHangYeuCau form,BindingResult errors,@RequestParam(defaultValue="dat") String hanhDong,Principal user,Model model,RedirectAttributes flash){
+        if(form==null){flash.addFlashAttribute("loi","Không đọc được thông tin đặt hàng. Hãy kiểm tra lại địa chỉ và thử lại.");return "redirect:/dat-hang";}
         if(!errors.hasErrors())try{
             if("bao-gia".equals(hanhDong)){model.addAttribute("baoGia",orders.baoGia(user.getName(),form));}
             else{var address=maps.chuanHoa(form.diaChi());String code=orders.datHang(user.getName(),form,address);
