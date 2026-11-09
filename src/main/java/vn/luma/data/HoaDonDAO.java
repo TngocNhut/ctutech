@@ -22,7 +22,7 @@ public class HoaDonDAO {
     public void tao(long order){
         jdbc.sql("""
             INSERT INTO "HoaDon" ("MaDonHang","SoHoaDon","NgayPhatHanh","NoiDungChot","TongTien","PhienBanNoiDung")
-            SELECT "MaDonHang",'LUMA-'||"MaDonCongKhai",now(),jsonb_build_object('NguoiNhan',"TenNguoiNhan",'DienThoai',"SoDienThoaiNhan",'Email',"ThuDienTuNhan",'DiaChi',"DiaChiNhanCuThe"||', '||"PhuongXaNhan"||', '||"TinhThanhNhan",'PhiVanChuyen',"PhiVanChuyen",'TienGiamGia',"TienGiamGia",'TienTe','VND'),"TongThanhToan",2
+            SELECT "MaDonHang",'CTU-'||"MaDonCongKhai",now(),jsonb_build_object('NguoiNhan',"TenNguoiNhan",'DienThoai',"SoDienThoaiNhan",'Email',"ThuDienTuNhan",'DiaChi',"DiaChiNhanCuThe"||', '||"PhuongXaNhan"||', '||"TinhThanhNhan",'PhiVanChuyen',"PhiVanChuyen",'TienGiamGia',"TienGiamGia",'TienTe','VND'),"TongThanhToan",2
             FROM "DonHang" WHERE "MaDonHang"=:d ON CONFLICT ("MaDonHang") DO NOTHING
             """).param("d",order).update();
         jdbc.sql("""

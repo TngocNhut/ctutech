@@ -19,8 +19,8 @@ public class HoaDonPdf {
         BigDecimal fee=invoice.get("PhiGiao")==null?BigDecimal.ZERO:(BigDecimal)invoice.get("PhiGiao");
         if(gross.subtract(discount).add(fee).compareTo((BigDecimal)invoice.get("TongTien"))!=0)throw new IllegalStateException("Dòng hóa đơn không khớp tổng đã chốt.");
         try(var doc=new PDDocument();var output=new ByteArrayOutputStream();var layout=new Layout(doc)){
-            doc.getDocumentInformation().setTitle("Hóa đơn mua hàng - "+invoice.get("SoHoaDon"));doc.getDocumentInformation().setAuthor("LUMA Tech");
-            layout.text("LUMA Tech",18,true,TEAL);layout.gap(14);layout.text("HÓA ĐƠN MUA HÀNG",23,true,INK);
+            doc.getDocumentInformation().setTitle("Hóa đơn mua hàng - "+invoice.get("SoHoaDon"));doc.getDocumentInformation().setAuthor("CTUtech");
+            layout.text("CTUtech",18,true,TEAL);layout.gap(14);layout.text("HÓA ĐƠN MUA HÀNG",23,true,INK);
             layout.paragraph("Số: "+invoice.get("SoHoaDon"),10,false);layout.paragraph("Đơn hàng: "+invoice.get("MaDonCongKhai"),10,false);layout.paragraph("Phát hành: "+invoice.get("NgayIn")+" (giờ Việt Nam)",10,false);
             if("MO_PHONG".equals(invoice.get("CheDoXuLy"))){layout.gap(10);layout.paragraph("DỮ LIỆU MÔ PHỎNG - KHÔNG XÁC NHẬN CHUYỂN TIỀN THẬT",10,true);}
             layout.gap(18);layout.text("Thông tin người nhận",12,true,INK);
@@ -39,7 +39,7 @@ public class HoaDonPdf {
         InputStream font(String file){return Objects.requireNonNull(HoaDonPdf.class.getResourceAsStream("/fonts/"+file),"Missing bundled invoice font");}
         void newPage()throws IOException{
             if(stream!=null)stream.close();var page=new PDPage(PDRectangle.A4);doc.addPage(page);stream=new PDPageContentStream(doc,page);y=790;
-            draw("LUMA Tech | Chứng từ mua hàng nội bộ",LEFT,30,8,false,MUTED);right("Trang "+doc.getNumberOfPages(),RIGHT,30,8,false,MUTED);
+            draw("CTUtech | Chứng từ mua hàng nội bộ",LEFT,30,8,false,MUTED);right("Trang "+doc.getNumberOfPages(),RIGHT,30,8,false,MUTED);
         }
         void ensure(float height)throws IOException{if(y-height<BOTTOM)newPage();}
         void gap(float height)throws IOException{ensure(height);y-=height;}
