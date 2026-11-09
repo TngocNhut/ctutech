@@ -23,6 +23,11 @@ class PayOSClientContractTest {
         var data=data();String signature=hmac(data);data.put("amount",4000L);assertThatThrownBy(()->adapter().xacMinh(body(data,signature))).isInstanceOf(IllegalArgumentException.class);
         data.put("currency","USD");String usdSignature=hmac(data);assertThatThrownBy(()->adapter().xacMinh(body(data,usdSignature))).isInstanceOf(IllegalArgumentException.class);
     }
+    @Test void signedNonPaymentIsAcknowledgedWithoutReceipt()throws Exception{
+        var data=data();data.put("code","01");
+        assertThat(adapter().xacMinh(body(data,hmac(data)))).isNull();
+        assertThatThrownBy(()->adapter().xacMinh(body(data,"invalid"))).isInstanceOf(IllegalArgumentException.class);
+    }
     @Test void sdkCreatesQueriesAndCancelsAgainstLocalContractServer()throws Exception{
         var mapper=new com.fasterxml.jackson.databind.ObjectMapper();var failure=new java.util.concurrent.atomic.AtomicReference<Throwable>();
         var server=com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1",0),0);

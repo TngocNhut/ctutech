@@ -49,8 +49,11 @@ public class PayOSClient {
         try{
             data=sdk().webhooks().verify(body);
         }catch(Exception ex){org.slf4j.LoggerFactory.getLogger(getClass()).warn("PayOS webhook rejected: SDK verification or payload format");throw new IllegalArgumentException("Webhook PayOS không hợp lệ.");}
+        if(!envelope.path("success").asBoolean()||!"00".equals(envelope.path("code").asText())||!"00".equals(data.getCode())){
+            org.slf4j.LoggerFactory.getLogger(getClass()).info("PayOS webhook: verified non-payment event acknowledged");
+            return null;
+        }
         try{
-            if(!envelope.path("success").asBoolean()||!"00".equals(envelope.path("code").asText())||!"00".equals(data.getCode())){org.slf4j.LoggerFactory.getLogger(getClass()).warn("PayOS webhook rejected: unsuccessful event");throw new IllegalArgumentException("Sự kiện chưa xác nhận chuyển khoản thành công.");}
             return new BaoThu(data.getOrderCode(),data.getPaymentLinkId(),data.getReference(),BigDecimal.valueOf(data.getAmount()),data.getCurrency(),thoiDiem(data.getTransactionDateTime()));
         }catch(Exception ex){org.slf4j.LoggerFactory.getLogger(getClass()).warn("PayOS webhook rejected: invalid payment fields");throw new IllegalArgumentException("Webhook PayOS không hợp lệ.");}
     }

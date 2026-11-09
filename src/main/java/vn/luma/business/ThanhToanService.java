@@ -38,7 +38,8 @@ public class ThanhToanService {
     }
     public void webhook(String body){
         if(!config.live())throw new IllegalStateException("Chưa bật PayOS thật.");
-        var receipt=client.xacMinh(body);long event=ledger.nhanDaXacMinh("PAYOS_LUMA",receipt);
+        var receipt=client.xacMinh(body);if(receipt==null)return;
+        long event=ledger.nhanDaXacMinh("PAYOS_LUMA",receipt);
         // A verified webhook is acknowledged after durable storage even if downstream processing needs a retry.
         try{ledger.xuLy(event);}catch(RuntimeException ex){org.slf4j.LoggerFactory.getLogger(getClass()).warn("Webhook đã lưu; xử lý sổ thu sẽ được thử lại.");}
     }
